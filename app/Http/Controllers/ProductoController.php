@@ -10,7 +10,6 @@ class ProductoController extends Controller
     public function index()
     {
         try {
-            echo "Entrando a index"; // Verificación de entrada
             $productos = Producto::all();
             return response()->json($productos);
         } catch (\Exception $e) {
@@ -21,13 +20,37 @@ class ProductoController extends Controller
     public function show($id)
     {
         try {
-            echo "Entrando a show"; // Verificación de entrada
             $producto = Producto::find($id);
             if ($producto) {
                 return response()->json($producto);
             } else {
                 return response()->json(['error' => 'Producto no encontrado'], 404);
             }
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function search(Request $request)
+    {
+        try {
+            $query = Producto::query();
+
+            if ($request->has('CodProducto')) {
+                $query->where('CodProducto', $request->input('CodProducto'));
+            }
+
+            if ($request->has('Producto')) {
+                $query->where('Producto', 'LIKE', '%' . $request->input('Producto') . '%');
+            }
+
+            $productos = $query->get();
+
+            if ($productos->isEmpty()) {
+                return response()->json(['error' => 'Producto no encontrado!!!'], 404);
+            }
+
+            return response()->json($productos);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
